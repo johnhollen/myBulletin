@@ -1,0 +1,131 @@
+<div ng-controller="ProfileController" ng-init="getFriendRequests()">
+
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Profile</h3>
+    </div>
+    <div class="panel-body">
+
+
+      <div class="panel panel-success customSettings">
+        <div class="panel-heading">
+          <h3 ng-show="!wholeUser['google']" class="panel-title"> Stats for {{wholeUser['local'].email}}</h3>
+          <h3 ng-show="wholeUser['google']" class="panel-title"> Stats for {{wholeUser['google'].name}}</h3>
+        </div>
+        <div class="panel-body">
+          <h3> Current stats </h3>
+          <table class="table table-hover table-striped">
+            <tr><td> Current nr of bulletin Boards: </td><td> {{nrBulletins}} </td></tr>
+            <tr><td> Current nr of stickies: </td><td> {{nrStickies}} </td></tr>
+            <tr><td> Current nr of Youtube clips: </td><td> {{nrYoutubes}} </td></tr>
+            <tr><td> Current nr of images: </td><td> {{nrImages}} </td></tr>
+          </table>
+
+          <h3> Total stats </h3>
+          <table class="table table-hover table-striped">
+            <tr><td> Total nr of bulletin Boards created: </td><td> {{wholeUser['stats'].nrBulletins}} </td></tr>
+            <tr><td> Total nr of stickies created: </td><td> {{wholeUser['stats'].nrStickies}} </td></tr>
+            <tr><td> Total nr of Youtube Clips created: </td><td> {{wholeUser['stats'].nrYoutubes}} </td></tr>
+            <tr><td> Total nr of Images created: </td><td> {{wholeUser['stats'].nrImages}} </td></tr>
+          </table>
+        </div>
+      </div> <!-- End of shared bulletinboards -->
+
+
+      <div class="panel panel-info customSettings">
+        <div class="panel-heading">
+          <h3 class="panel-title">Friends</h3>
+        </div>
+        <div class="panel-body">
+          <h4> You can share bulletinBoards with friends! </h4>
+          <form>
+            <input type="text" ng-model="selected" typeahead-on-select="setSelected($item)" typeahead="typeUser['google'].name || typeUser['local'].email for typeUser in searchUsers | filter:$viewValue | limitTo:8" typeahead-editable="false" class="form-control" style="width:300px;display:inline-block;" placeholder="Search for users...">
+            <button class="btn btn-success" ng-click="addFriendRequest(selectedUser)" style="display:inline-block;margin-left:40px;" > <span class="glyphicon glyphicon-plus"></span> Add Friend </button>
+          </form>
+
+          <!-- Friends -->
+          <h4 style="padding-top:15px;"> Your friends </h4>
+          <p ng-show="!theFriends.length"><span class="glyphicon glyphicon-info-sign"></span> You have no friends yet!</p>
+          <table class="table table-hover table-striped">
+            <tr ng-repeat="afriend in theFriends">
+              <td ng-show="!afriend.friend.friendUser['google']"><span class="glyphicon glyphicon-user"></span> {{afriend.friend.friendUser['local'].email}} </td>
+              <td ng-show="afriend.friend.friendUser['google']"><span class="glyphicon glyphicon-user"></span> {{afriend.friend.friendUser['google'].name}} </td>
+              <td><button class="btn btn-danger btn-xs" ng-click="openUnfriend(afriend.friend.friendUser)"><span class="glyphicon glyphicon-remove"></span> Unfriend</button></td>
+              <td><button class="btn btn-success btn-xs" ng-click="openShareBulletin(afriend.friend)"><span class="glyphicon glyphicon-share"></span> Share a bulletinBoard</button></td>
+            </tr>
+          </table>
+
+          <!-- Incoming Friends Requests -->
+          <h4 style="padding-top:15px;"> Incoming friend requests </h4>
+          <p ng-show="!incomingFriendRequests.length"><span class="glyphicon glyphicon-info-sign"></span> You have no incoming friend requests! </p>
+          <table class="table table-hover table-striped">
+            <tr ng-repeat="request in incomingFriendRequests">
+              <td ng-show="!request['google']"><span class="glyphicon glyphicon-user"></span> {{request['local'].email}}</td>
+              <td ng-show="request['google']"><span class="glyphicon glyphicon-user"></span> {{request['google'].name}}</td>
+              <td></td>
+              <td>
+                <button class="btn btn-info btn-xs" ng-click="acceptFriend(request)"><span class="glyphicon glyphicon-ok"></span> Accept</button>
+                <button class="btn btn-warning btn-xs" ng-click="cancelFriendRequest(request)" style="margin-left:5px;"><span class="glyphicon glyphicon-remove"></span> Decline</button>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Pending friendRequest -->
+          <h4 style="padding-top:15px;"> Sent friend requests </h4>
+          <p ng-show="!pendingFriendRequests.length"><span class="glyphicon glyphicon-info-sign"></span> You have no pending friend requests! </p>
+          <table class="table table-hover table-striped">
+            <tr ng-repeat="request in pendingFriendRequests">
+              <td ng-show="!request['google']"><span class="glyphicon glyphicon-user"></span> {{request['local'].email}}</td>
+              <td ng-show="request['google']"><span class="glyphicon glyphicon-user"></span> {{request['google'].name}}</td>
+              <td></td>
+              <td><button class="btn btn-danger btn-xs" ng-click="cancelFriendRequest(request)"><span class="glyphicon glyphicon-remove"></span> Cancel</button></td>
+            </tr>
+          </table>
+        </div>
+      </div><!-- End of friendsDiv -->
+    </div>
+
+
+    <!-- User feedback divs. -->
+      </div>
+      <div id="serverResponse" class="fader" ng-class="{in:showing}">
+        <h5><span class="glyphicon glyphicon-ok-circle" style="color:rgb(92,184,92);"></span> {{updateStatus}}!</h5>
+      </div>
+      <div id="serverResponse" class="fader" ng-class="{in:errorShowing}">
+        <h5><span class="glyphicon glyphicon-remove-circle" style="color:rgb(217,83,79);"></span> {{updateStatus}}</h5>
+      </div>
+  </div>
+</div>
+
+<!-- Modal templates -->
+<script type="text/ng-template" id="sharePopup2.html">
+  <div class ="modal-header">
+    <h3> Which bulletin board do you like to share? <h3>
+  </div>
+  <div class="modal-body">
+  <p> Choose one </p>
+    <form>
+      <table class="table table-hover table-striped">
+        <tr ng-repeat="bulletin in theBulletins">
+          <td>{{bulletin.title}}</td>
+          <td><input type="checkbox" ng-model="checked" ng-click="chooseFriend(bulletin, checked)" value="{{bulletin}}"/></td>
+        </tr>
+      </table>
+      <button class="btn btn-primary" style="margin-top:10px;" ng-click="ok(selectedBulletins)">OK</button>
+      <button class="btn btn-danger" style="margin-top:10px;" ng-click="cancel()">Cancel</button>
+    </form>
+  </div>
+</script>
+
+<script type="text/ng-template" id="areYouSureUnfriendPopup.html">
+  <div class ="modal-header">
+    <h3> Are you sure? <h3>
+  </div>
+  <div class="modal-body">
+  <p> Do you really want to unfriend this user? </p>
+    <form>
+      <button class="btn btn-primary" style="margin-top:10px;" ng-click="ok(clickedObject)">OK</button>
+      <button class="btn btn-danger" style="margin-top:10px;" ng-click="cancel()">Cancel</button>
+    </form>
+  </div>
+</script>

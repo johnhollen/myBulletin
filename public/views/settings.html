@@ -1,0 +1,171 @@
+<div class="panel panel-default settingsDiv" ng-controller="SettingsController" ng-init="getBulletins()">
+  <div class="panel-heading">
+    <h3 class="panel-title">Settings</h3>
+  </div>
+  <div class="panel-body">
+
+    <!-- User specific settings -->
+    <div class="panel panel-success customSettings">
+      <div class="panel-heading">
+        <h3 class="panel-title" style="display:inline-block">User Settings</h3>
+        <button class="btn btn-danger btn-xs" style="display:inline-block;float:right;"> <span class="glyphicon glyphicon-remove"></span> Remove Account</button>
+      </div>
+      <div class="panel-body">
+        <button ng-show="!wholeUser['local']" class="btn btn-success"> Link Local Account </button>
+        <div id="local" ng-show="wholeUser['local']">
+          <table class="table table-hover">
+            <tr>
+              <td><b>Email: </b></td>
+              <td>{{wholeUser['local'].email}} </td>
+              <td><button class="btn btn-primary btn-xs" ng-click="openEditEmail()"> <span class="glyphicon glyphicon-pencil"></span> Edit</button></td>
+            </tr>
+            <tr>
+              <td><b>Password: </b></td>
+              <td>&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;</td>
+              <td><button class="btn btn-primary btn-xs" ng-click="openEditPassword()"> <span class="glyphicon glyphicon-pencil"></span> Edit</button></td>
+            </tr>
+          </table>
+        </div>
+        <a class="btn btn-danger" ng-click="linkGoogle()" ng-show="!wholeUser['google'].token"><i class="fa fa-google"></i> Link Google Account </a>
+        <div id="google" ng-show="wholeUser['google'].token">
+          <h4><i class="fa fa-google"></i> Google Credentials </h4>
+          <img id="profilePic" ng-src="{{wholeUser['google'].img}}" height="100">
+
+          <table class="table table-hover" style="float:left;width:350px;margin-left:10px;">
+              <tr>
+                <td>Email: <td><td>{{wholeUser['google'].email}}</td>
+              </tr>
+              <tr>
+                <td>Name: <td><td>{{wholeUser['google'].name}}</td>
+              </tr>
+          </table>
+          <button style="margin-left:10px;" ng-show="wholeUser['google']" ng-click="unLinkGoogle()" class="btn btn-danger btn-sm">Unlink Google Account </button>
+          <p style="display:inline-block;"> (Token will be removed) </p>
+        </div>
+
+
+      </div>
+    </div>
+
+    <!-- Bulletin Settings -->
+    <div class="panel panel-warning customSettings">
+      <div class="panel-heading">
+        <h3 class="panel-title">BulletinBoards</h3>
+      </div>
+      <div class="panel-body">
+        <h4> Your BulletinBoards </h4>
+        <p ng-show="!settingsBulletins.length"><span class="glyphicon glyphicon-info-sign"></span> You have no bulletinBoards yet! </p>
+        <table class="table table-hover table-striped">
+          <tr ng-repeat="bulletin in settingsBulletins">
+            <td> {{bulletin.title}} </td>
+            <td><button class="btn btn-primary btn-xs" ng-click="openEditBulletinName(bulletin)"> <span class="glyphicon glyphicon-pencil"></span> Change Name</button></td>
+            <td><button class="btn btn-success btn-xs" ng-click="shareBulletin(bulletin)"><span class="glyphicon glyphicon-share"></span> Share </button></td>
+            <td><button class="btn btn-danger btn-xs" ng-click="openRemoveBulletin(bulletin)"> <span class="glyphicon glyphicon-remove"></span> Remove </button></td>
+          </tr>
+        </table>
+        <h4 style="padding-top:8px;"> Shared BulletinBoards </h4>
+        <p ng-show="!sharedBulletins.length"><span class="glyphicon glyphicon-info-sign"></span> You have no shared bulletinBoards! </p>
+        <table class="table table-hover table-striped">
+          <tr ng-repeat="sharedBulletin in sharedBulletins">
+            <td> {{sharedBulletin.title}} </td>
+            <td><button class="btn btn-primary btn-xs" ng-click="openEditBulletinName(sharedBulletin)"> <span class="glyphicon glyphicon-pencil"></span> Change Name</button></td>
+            <td><button class="btn btn-danger btn-xs" ng-click="openRemoveBulletin(sharedBulletin)"> <span class="glyphicon glyphicon-remove"></span> Remove </button></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <div id="serverResponse" class="fader" ng-class="{in:showing}">
+    <h5><span class="glyphicon glyphicon-ok-circle" style="color:rgb(92,184,92);"></span> {{updateStatus}}!</h5>
+  </div>
+</div>
+
+
+<!-- Popup templates -->
+
+<script type="text/ng-template" id="editBulletinDialog.html">
+  <div class ="modal-header">
+    <h3> Edit the name of your bulletin! <h3>
+  </div>
+  <div class="modal-body">
+    <form>
+      <input class="form-control" type="text" placeholder="New name..." ng-model="bulletin.title"/>
+      <button class="btn btn-primary" style="margin-top:10px;" ng-click="ok(bulletin)">Change</button>
+      <button class="btn btn-danger" style="margin-top:10px;" ng-click="cancel()">Cancel</button>
+    </form>
+  </div>
+</script>
+
+<script type="text/ng-template" id="areYouSureBulletinPopup.html">
+  <div class ="modal-header">
+    <h3> Are you sure? <h3>
+  </div>
+  <div class="modal-body">
+  <p> This will remove the bulletin and all its content permanently! </p>
+    <form>
+      <button class="btn btn-primary" style="margin-top:10px;" ng-click="ok(clickedObject)">OK</button>
+      <button class="btn btn-danger" style="margin-top:10px;" ng-click="cancel()">Cancel</button>
+    </form>
+  </div>
+</script>
+
+<script type="text/ng-template" id="areYouSureSharedBulletinPopup.html">
+  <div class ="modal-header">
+    <h3> Are you sure? <h3>
+  </div>
+  <div class="modal-body">
+  <p> This will remove the bulletin and all its content permanently as well making it unavailable for friends! </p>
+    <form>
+      <button class="btn btn-primary" style="margin-top:10px;" ng-click="ok(clickedObject)">OK</button>
+      <button class="btn btn-danger" style="margin-top:10px;" ng-click="cancel()">Cancel</button>
+    </form>
+  </div>
+</script>
+
+<script type="text/ng-template" id="sharePopup.html">
+  <div class ="modal-header">
+    <h3> Share with whom? <h3>
+  </div>
+  <div class="modal-body">
+  <p> Select the friends you want to share with! </p>
+    <form>
+    <input type="text" ng-model="friendFilter" class="form-control" style="width:300px;display:inline-block;" placeholder="Filter friends...">
+      <table class="table table-hover table-striped">
+        <tr ng-repeat="friend in theFriends | filter: friendFilter">
+          <td>{{friend.friend.friendUser['local'].email}}</td>
+          <td><input type="checkbox" ng-model="checked" ng-click="chooseFriend(friend.friend, checked)" value="{{friend.friend}}"/></td>
+        </tr>
+      </table>
+      <button class="btn btn-primary" style="margin-top:10px;" ng-click="ok(selectedFriends)">OK</button>
+      <button class="btn btn-danger" style="margin-top:10px;" ng-click="cancel()">Cancel</button>
+    </form>
+  </div>
+</script>
+
+<script type="text/ng-template" id="editEmailDialog.html">
+  <div class ="modal-header">
+    <h3> Write a new Email adress. <h3>
+  </div>
+  <div class="modal-body">
+    <form>
+      <input class="form-control" type="email" placeholder="New Email..." ng-model="newEmail.address"/>
+      <button class="btn btn-primary" style="margin-top:10px;" ng-click="ok(newEmail)">Change</button>
+      <button class="btn btn-danger" style="margin-top:10px;" ng-click="cancel()">Cancel</button>
+    </form>
+  </div>
+</script>
+
+<script type="text/ng-template" id="editPasswordDialog.html">
+  <div class ="modal-header">
+    <h3> Write a new password. <h3>
+  </div>
+  <div class="modal-body">
+    <form>
+      <input class="form-control" type="password" placeholder="New Password..." ng-model="newPassword.first"/>
+      <input style="margin-top:10px;" class="form-control" type="password" placeholder="New Password again..." ng-model="newPassword.second"/>
+      <button class="btn btn-primary" style="margin-top:10px;" ng-click="ok(newPassword)">Change</button>
+      <button class="btn btn-danger" style="margin-top:10px;" ng-click="cancel()">Cancel</button>
+    </form>
+  </div>
+</script>
